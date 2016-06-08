@@ -11,8 +11,8 @@ import module namespace templates="http://exist-db.org/xquery/templates" ;
  : The following modules provide functions which will be called by the 
  : templating.
  :)
-import module namespace config="http://localhost:8080/exist/apps/idp.data/config" at "config.xqm";
-import module namespace app="http://localhost:8080/exist/apps/idp.data/templates" at "app.xql";
+import module namespace config="http://localhost:8080/exist/apps/papyrillio/config" at "config.xqm";
+import module namespace app="http://localhost:8080/exist/apps/papyrillio/templates" at "app.xql";
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 

@@ -4,7 +4,7 @@ xquery version "3.0";
  : A set of helper functions to access the application context from
  : within a module.
  :)
-module namespace config="http://localhost:8080/exist/apps/idp.data/config";
+module namespace config="http://localhost:8080/exist/apps/papyrillio/config";
 
 declare namespace templates="http://exist-db.org/xquery/templates";
 

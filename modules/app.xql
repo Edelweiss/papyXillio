@@ -1,9 +1,9 @@
 xquery version "3.0";
 
-module namespace app="http://localhost:8080/exist/apps/idp.data/templates";
+module namespace app="http://localhost:8080/exist/apps/papyrillio/templates";
 
 import module namespace templates="http://exist-db.org/xquery/templates" ;
-import module namespace config="http://localhost:8080/exist/apps/idp.data/config" at "config.xqm";
+import module namespace config="http://localhost:8080/exist/apps/papyrillio/config" at "config.xqm";
 import module namespace papy="http://www.papy" at "papy.xql";
 
 declare namespace tei = "http://www.tei-c.org/ns/1.0";
