@@ -30,6 +30,46 @@ declare function app:helloworld($node as node(), $model as map(*), $name as xs:s
         ()
 };
 
+(: example for HGV id that exists in EpiDoc but not in Aquila 3720b :)
+
+declare function app:__searchEpiDocZombies($node as node(), $model as map(*)) {
+    let $hgvIds := doc('/db/apps/papyrillio/data/HGV_Id.xml')//id/text()
+    let $hgvIds_flat := concat('|', string-join($hgvIds, '|'), '|')
+    let $test := '|3720b|'
+    let $in := if(contains($hgvIds_flat, $test))then('+')else('-')
+    return <p>
+    {$test}
+    <br/>
+    {$in}
+    <br/>
+    {$hgvIds_flat}
+    </p>
+};
+
+declare function app:searchEpiDocZombies($node as node(), $model as map(*)) {
+    let $hgvIds := doc('/db/apps/papyrillio/data/HGV_Id.xml')//id/text()
+    let $hgvIds_flat := concat('|', string-join($hgvIds, '|'), '|')
+    for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/HGV_meta_EpiDoc?select=*.xml;recurse=yes")[not(contains($hgvIds_flat, concat('|', normalize-space(tei:TEI/tei:teiHeader[1]/tei:fileDesc[1]/tei:publicationStmt[1]/tei:idno[@type='filename'][1]/text()), '|')))]
+      let $hgvId_epidoc := string($doc/tei:TEI/tei:teiHeader[1]/tei:fileDesc[1]/tei:publicationStmt[1]/tei:idno[@type='filename'][1])
+      return
+        <li>
+        <a href="http://papyri.info/hgv/{$hgvId_epidoc}">{$hgvId_epidoc}</a>
+        </li>
+};
+
+declare function app:_searchEpiDocZombies($node as node(), $model as map(*)) {
+    let $hgvIds := doc('/db/apps/papyrillio/data/HGV_Id.xml')
+    for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/HGV_meta_EpiDoc/?select=*.xml;recurse=yes")
+      let $hgvId_epidoc  := string($doc/tei:TEI/tei:teiHeader[1]/tei:fileDesc[1]/tei:publicationStmt[1]/tei:idno[@type='filename'][1])
+      (:let $hasEquivalent = if($hgvIds//id[.=$hgvId])then('Hallo')else('xxxx'):)
+      let $hgvId_filemaker := $hgvIds//id[.=$hgvId_epidoc][1]
+      let $test := if($hgvId_filemaker = $hgvId_epidoc) then('') else ('!')
+      return
+        <li>
+        <a href="http://papyri.info/hgv/{$hgvId_epidoc}">{$hgvId_epidoc}</a>/<a href="http://aquila.zaw.uni-heidelberg.de/hgv/{$hgvId_epidoc}">{$hgvId_epidoc}</a><span>{$test}</span>
+        </li>
+};
+
 declare function app:autocomplete($node as node(), $model as map(*), $term as xs:string?) {
     if (string-length($term) > 3) then
         for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $term) or contains(data(tei:bibl/tei:title), $term)]
