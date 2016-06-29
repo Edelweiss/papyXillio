@@ -34,10 +34,10 @@ declare function app:test($node as node(), $model as map(*)) {
 declare function app:ancientAuthorsAndWorks($node as node(), $model as map(*), $tlgAuthor as xs:string?, $tlgAuthorNumber as xs:string?, $tmWork as xs:string?, $tmWorkNumber as xs:string?) {
 
     let $collection := '/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
-    let $biblio := if(string($tlgAuthor))then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:author[.=$tlgAuthor]][1])else (
-      if(string-length($tlgAuthorNumber)=4)then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:author/@ref[ends-with(., $tlgAuthorNumber)]][1])else(
-      if(string($tmWork))then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:title[.=$tmWork]][1])else(
-      if(string($tmWorkNumber))then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:title/@ref[functx:substring-after-last(., '/')=$tmWorkNumber]][1])else())))
+    let $biblio := if(string($tlgAuthor))then(  collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:author=$tlgAuthor][1])else (
+      if(string-length($tlgAuthorNumber)=4)then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][ends-with(tei:author/@ref, $tlgAuthorNumber)][1])else(
+      if(string($tmWork))then(                  collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:title=$tmWork][1])else(
+      if(string($tmWorkNumber))then(            collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][functx:substring-after-last(tei:title/@ref, '/')=$tmWorkNumber][1])else())))
     
     let $author    := normalize-space($biblio/tei:author[1])
     let $tlg       := functx:substring-after-last($biblio/tei:author/@ref, 'tlg')
@@ -63,9 +63,9 @@ declare function app:ancientAuthorsAndWorks($node as node(), $model as map(*), $
 
 declare function app:autocompleteAncientAuthorsAndWorks($node as node(), $model as map(*), $type as xs:string, $term as xs:string) {
     let $collection := '/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
-    let $biblioList := if($type = 'author')then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][contains(tei:author, $term)])else (
+    let $biblioList := if($type = 'author')then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][contains(tei:author, $term)])else (
       if($type = 'tlg')then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][tei:author/@ref[ends-with(., $term)]])else(
-      if($type = 'title')then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][tei:title[.=$term]])else(
+      if($type = 'title')then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:title=$term])else(
       if($type = 'tm')then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][tei:title/@ref[functx:substring-after-last(., '/')=$term]])else())))
 
     for $biblio in $biblioList
