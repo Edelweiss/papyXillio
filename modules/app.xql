@@ -34,19 +34,20 @@ declare function app:test($node as node(), $model as map(*)) {
 declare function app:ancientAuthorsAndWorks($node as node(), $model as map(*), $tlgAuthor as xs:string?, $tlgAuthorNumber as xs:string?, $tmWork as xs:string?, $tmWorkNumber as xs:string?) {
 
     let $collection := '/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
-    let $biblio := if(string($tlgAuthor))then(  collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:author=$tlgAuthor][1])else (
-      if(string-length($tlgAuthorNumber)=4)then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][ends-with(tei:author/@ref, $tlgAuthorNumber)][1])else(
-      if(string($tmWork))then(                  collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:title=$tmWork][1])else(
-      if(string($tmWorkNumber))then(            collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][functx:substring-after-last(tei:title/@ref, '/')=$tmWorkNumber][1])else())))
-    
+    let $biblio := if(string($tlgAuthor))then(  collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:author=$tlgAuthor])else (
+      if(string-length($tlgAuthorNumber)=4)then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][matches(tei:author/@ref, concat('(phi|tlg)', $tlgAuthorNumber, '( .+)?$'))])else(
+      if(string($tmWork))then(                  collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:title=$tmWork])else(
+      if(string($tmWorkNumber))then(            collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][matches(tei:title/@ref, concat('authorwork/', $tmWorkNumber, '( .+)?$'))])else())))
+
+    let $biblio    := $biblio[1]
     let $author    := normalize-space($biblio/tei:author[1])
-    let $tlg       := functx:substring-after-last($biblio/tei:author/@ref, 'tlg')
+    let $tlg       := replace(string-join($biblio/tei:author/@ref, ' '), '^.+(phi|tlg)(\d+)( .+)?$' , '$2')
     let $title     := normalize-space($biblio/tei:title[1])
-    let $tm        := functx:substring-after-last($biblio/tei:title/@ref, '/')
+    let $tm        := replace(string-join($biblio/tei:title/@ref, ' '), '^.+authorwork/(\d+)( .+)?$', '$1')
     let $date      := string($biblio/tei:date)
     let $authorRef := string($biblio/tei:author/@ref)
     let $workRef   := string($biblio/tei:title/@ref)
-    
+
     let $space := '&#32;'
 
     return <p>
@@ -92,7 +93,7 @@ declare function app:__searchEpiDocZombies($node as node(), $model as map(*)) {
 declare function app:searchEpiDocZombies($node as node(), $model as map(*)) {
     let $hgvIds := doc('/db/apps/papyrillio/data/HGV_Id.xml')//id/text()
     let $hgvIds_flat := concat('|', string-join($hgvIds, '|'), '|')
-    for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/HGV_meta_EpiDoc?select=*.xml;recurse=yes")[not(contains($hgvIds_flat, concat('|', normalize-space(tei:TEI/tei:teiHeader[1]/tei:fileDesc[1]/tei:publicationStmt[1]/tei:idno[@type='filename'][1]/text()), '|')))]
+    for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/HGV_meta_EpiDoc?select=*.xml;recurse=yes")[not(contains($hgvIds_flat, concat('|', normalize-space(tei:idno[@type='filename'][1]/text()), '|')))]
       let $hgvId_epidoc := string($doc/tei:TEI/tei:teiHeader[1]/tei:fileDesc[1]/tei:publicationStmt[1]/tei:idno[@type='filename'][1])
       return
         <li>
