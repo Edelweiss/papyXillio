@@ -5,7 +5,6 @@ module namespace app="http://localhost:8080/exist/apps/papyrillio/templates";
 import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://localhost:8080/exist/apps/papyrillio/config" at "config.xqm";
 import module namespace papy="http://www.papy" at "papy.xql";
-import module namespace aaaw="http://www.aaaw" at "ancientAuthorsAndWorks.xql";
 
 import module namespace functx = "http://www.functx.com" at "functx-1.0-doc-2007-01.xq";
 declare namespace tei = "http://www.tei-c.org/ns/1.0";
