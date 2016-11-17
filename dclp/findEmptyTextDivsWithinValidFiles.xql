@@ -52,7 +52,7 @@ declare function local:main() as node()?
        http://www.stoa.org/epidoc/schema/8.16/tei-epidoc.rng
        /db/data/tei-epidoc.rng
     :)
-    <ul>{for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes")[.//tei:div[@type='edition']]
+    <ul>{for $doc in collection("/db/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes")[.//tei:div[@type='edition']]
         let $tm   := data($doc//tei:idno[@type='TM'])
         let $file := data(replace(document-uri($doc), '^.+idp\.data/dclp/DCLP/(.+)$', 'https://github.com/DCLP/idp.data/blob/dclp/DCLP/$1'))
         let $lang := data($doc//tei:div[@type='edition']/@xml:lang)

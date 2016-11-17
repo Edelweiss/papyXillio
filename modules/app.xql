@@ -32,7 +32,7 @@ declare function app:test($node as node(), $model as map(*)) {
 
 declare function app:ancientAuthorsAndWorks($node as node(), $model as map(*), $tlgAuthor as xs:string?, $tlgAuthorNumber as xs:string?, $tmWork as xs:string?, $tmWorkNumber as xs:string?) {
 
-    let $collection := '/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
+    let $collection := '/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
     let $biblio := if(string($tlgAuthor))then(  collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:author=$tlgAuthor])else (
       if(string-length($tlgAuthorNumber)=4)then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][matches(tei:author/@ref, concat('(phi|tlg)', $tlgAuthorNumber, '( .+)?$'))])else(
       if(string($tmWork))then(                  collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:title=$tmWork])else(
@@ -62,7 +62,7 @@ declare function app:ancientAuthorsAndWorks($node as node(), $model as map(*), $
 };
 
 declare function app:autocompleteAncientAuthorsAndWorks($node as node(), $model as map(*), $type as xs:string, $term as xs:string) {
-    let $collection := '/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
+    let $collection := '/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
     let $biblioList := if($type = 'author')then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][contains(tei:author, $term)])else (
       if($type = 'tlg')then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][tei:author/@ref[ends-with(., $term)]])else(
       if($type = 'title')then(collection($collection)//tei:bibl[@type='publication'][@subtype='ancient'][tei:title=$term])else(
@@ -76,7 +76,7 @@ declare function app:autocompleteAncientAuthorsAndWorks($node as node(), $model 
 (: example for HGV id that exists in EpiDoc but not in Aquila 3720b :)
 
 declare function app:__searchEpiDocZombies($node as node(), $model as map(*)) {
-    let $hgvIds := doc('/db/apps/papyrillio/data/HGV_Id.xml')//id/text()
+    let $hgvIds := doc('/db/data/HGV/HGV_Id.xml')//id/text()
     let $hgvIds_flat := concat('|', string-join($hgvIds, '|'), '|')
     let $test := '|3720b|'
     let $in := if(contains($hgvIds_flat, $test))then('+')else('-')
@@ -90,9 +90,9 @@ declare function app:__searchEpiDocZombies($node as node(), $model as map(*)) {
 };
 
 declare function app:searchEpiDocZombies($node as node(), $model as map(*)) {
-    let $hgvIds := doc('/db/apps/papyrillio/data/HGV_Id.xml')//id/text()
+    let $hgvIds := doc('/db/data/HGV/HGV_Id.xml')//id/text()
     let $hgvIds_flat := concat('|', string-join($hgvIds, '|'), '|')
-    for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/HGV_meta_EpiDoc?select=*.xml;recurse=yes")[not(contains($hgvIds_flat, concat('|', normalize-space(tei:idno[@type='filename'][1]/text()), '|')))]
+    for $doc in collection("/db/data/idp.data/dclp/HGV_meta_EpiDoc?select=*.xml;recurse=yes")[not(contains($hgvIds_flat, concat('|', normalize-space(tei:idno[@type='filename'][1]/text()), '|')))]
       let $hgvId_epidoc := string($doc/tei:TEI/tei:teiHeader[1]/tei:fileDesc[1]/tei:publicationStmt[1]/tei:idno[@type='filename'][1])
       return
         <li>
@@ -101,8 +101,8 @@ declare function app:searchEpiDocZombies($node as node(), $model as map(*)) {
 };
 
 declare function app:_searchEpiDocZombies($node as node(), $model as map(*)) {
-    let $hgvIds := doc('/db/apps/papyrillio/data/HGV_Id.xml')
-    for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/HGV_meta_EpiDoc/?select=*.xml;recurse=yes")
+    let $hgvIds := doc('/db/data/HGV/HGV_Id.xml')
+    for $doc in collection("/db/data/idp.data/dclp/HGV_meta_EpiDoc/?select=*.xml;recurse=yes")
       let $hgvId_epidoc  := string($doc/tei:TEI/tei:teiHeader[1]/tei:fileDesc[1]/tei:publicationStmt[1]/tei:idno[@type='filename'][1])
       (:let $hasEquivalent = if($hgvIds//id[.=$hgvId])then('Hallo')else('xxxx'):)
       let $hgvId_filemaker := $hgvIds//id[.=$hgvId_epidoc][1]
@@ -115,7 +115,7 @@ declare function app:_searchEpiDocZombies($node as node(), $model as map(*)) {
 
 declare function app:autocomplete($node as node(), $model as map(*), $term as xs:string?) {
     if (string-length($term) > 3) then
-        for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $term) or contains(data(tei:bibl/tei:title), $term)]
+        for $doc in collection("/db/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $term) or contains(data(tei:bibl/tei:title), $term)]
           let $id     := string($doc/tei:bibl/tei:idno[@type='pi'])
           let $author := string-join(if($doc/tei:bibl/tei:author/tei:forename or $doc/tei:bibl/tei:author/tei:surname)then(concat($doc/tei:bibl/tei:author/tei:forename, '&#23;' ,$doc/tei:bibl/tei:author/tei:surname))else($doc/tei:bibl/tei:author), ' ')
           let $title  := string-join($doc/tei:bibl/tei:title, ' = ')
@@ -128,14 +128,14 @@ declare function app:autocomplete($node as node(), $model as map(*), $term as xs
 
 declare function app:biblio($node as node(), $model as map(*), $search as xs:string?, $get as xs:integer?) {
     if (string-length($search) > 3) then
-        for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $search) or contains(data(tei:bibl/tei:title), $search)]
+        for $doc in collection("/db/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $search) or contains(data(tei:bibl/tei:title), $search)]
           return <bibl>
               {$doc/tei:bibl/@xml:id, $doc/tei:bibl/@type, $doc/tei:bibl/@subtype, $doc/tei:bibl/tei:title[1], $doc/tei:bibl/tei:author[1], $doc/tei:bibl/tei:date[1]}
               </bibl>
     else
     (
         if($get) then
-            doc(concat('/db/apps/papyrillio/data/idp.data/dclp/Biblio/', papy:getFolder1000($get), '/', $get, '.xml'))/tei:bibl
+            doc(concat('/db/data/idp.data/dclp/Biblio/', papy:getFolder1000($get), '/', $get, '.xml'))/tei:bibl
         else
         ()
     )
@@ -143,7 +143,7 @@ declare function app:biblio($node as node(), $model as map(*), $search as xs:str
 
 declare function app:biblio-html($node as node(), $model as map(*), $search as xs:string?, $get as xs:integer?) {
     if (string-length($search) > 3) then
-        for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $search) or contains(data(tei:bibl/tei:title), $search)]
+        for $doc in collection("/db/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $search) or contains(data(tei:bibl/tei:title), $search)]
           let $id     := string($doc/tei:bibl/tei:idno[@type='pi'])
           let $author := string-join(if($doc/tei:bibl/tei:author/tei:forename or $doc/tei:bibl/tei:author/tei:surname)then(concat($doc/tei:bibl/tei:author/tei:forename, '&#23;' ,$doc/tei:bibl/tei:author/tei:surname))else($doc/tei:bibl/tei:author), ' ')
           let $title  := string-join($doc/tei:bibl/tei:title, ' = ')
@@ -151,7 +151,7 @@ declare function app:biblio-html($node as node(), $model as map(*), $search as x
     else
     (
         if($get) then
-            doc(concat('/db/apps/papyrillio/data/idp.data/dclp/Biblio/', papy:getFolder1000($get), '/', $get, '.xml'))
+            doc(concat('/db/data/idp.data/dclp/Biblio/', papy:getFolder1000($get), '/', $get, '.xml'))
         else
         ()
     )
@@ -159,7 +159,7 @@ declare function app:biblio-html($node as node(), $model as map(*), $search as x
 
 declare function app:snippet($node as node(), $model as map(*), $biblio as xs:integer?, $ddb as xs:string?, $hgv as xs:string?, $dclp as xs:integer?) {
     if ($biblio) then
-        let $epiDoc := doc(concat('/db/apps/papyrillio/data/idp.data/dclp/Biblio/', papy:getFolder1000($biblio), '/', $biblio, '.xml'))
+        let $epiDoc := doc(concat('/db/data/idp.data/dclp/Biblio/', papy:getFolder1000($biblio), '/', $biblio, '.xml'))
         let $author := if($epiDoc/tei:bibl/tei:author[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:author[1]))else(if($epiDoc/tei:bibl/tei:editor[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:editor[1]))else())
         let $title  := data($epiDoc/tei:bibl/tei:title[1])
         let $date   := data($epiDoc/tei:bibl/tei:date[1])
@@ -174,7 +174,7 @@ declare function app:snippet($node as node(), $model as map(*), $biblio as xs:in
     else
     (
         if($dclp) then
-            doc(concat('/db/apps/papyrillio/data/idp.data/dclp/Biblio/', papy:getFolder1000($dclp), '/', $dclp, '.xml'))
+            doc(concat('/db/data/idp.data/dclp/Biblio/', papy:getFolder1000($dclp), '/', $dclp, '.xml'))
         else
         ()
     )

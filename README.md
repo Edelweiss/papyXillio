@@ -11,7 +11,7 @@ http://exist-db.org/exist/apps/homepage/index.html
 
 * create application papyrillio and therein a module called idp.data
 * add the sources of this repository to /db/apps/papyrillio
-* create folder /db/apps/papyrillio/data/idp.data/dclp, dclp being a clone of the dclp branch of idp.data so there should be dclp/DCLP and dclp/Biblio (perhaps some kind of soft or hard link might work here)
+* create folder /db/data/idp.data/dclp, dclp being a clone of the dclp branch of idp.data so there should be dclp/DCLP and dclp/Biblio (perhaps some kind of soft or hard link might work here)
 
 Start local server on port 8080 to get a list of available queries (see top menu, /Home/etc.)
 

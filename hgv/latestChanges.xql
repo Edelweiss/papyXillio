@@ -50,7 +50,7 @@ declare function local:main() as node()?
     return
       if(not(empty($jourFixe)))
       then(
-        <ul>{for $doc in collection("/db/apps/papyrillio/data/idp.data/dclp/HGV_meta_EpiDoc?select=*.xml;recurse=yes")
+        <ul>{for $doc in collection("/db/data/idp.data/dclp/HGV_meta_EpiDoc?select=*.xml;recurse=yes")
             let $figures := $doc/tei:TEI/tei:text/tei:body/tei:div[@type='figure']/tei:p/tei:figure
             let $hgvDate := normalize-space(data($doc/tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:msDesc/tei:history/tei:origin/tei:origDate[1]))
             let $id := data($doc/tei:TEI/tei:teiHeader/tei:fileDesc/tei:publicationStmt/tei:idno[@type='filename'])

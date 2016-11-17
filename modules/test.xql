@@ -1,11 +1,10 @@
 xquery version "3.0";
 
 
-import module namespace functx = "http://www.functx.com" at "functx-1.0-doc-2007-01.xq";
 declare namespace tei = "http://www.tei-c.org/ns/1.0";
 
 (:  :let $tlgAuthor := "Cleo", $tlgAuthorNumber := "", $tmWork := "", $tmWorkNumber := ""
-let $collection := '/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
+let $collection := '/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
 let $biblio := if(string($tlgAuthor))then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][tei:author[.=$tlgAuthor]][1])else (
   if(string-length($tlgAuthorNumber)=4)then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][tei:author/@ref[ends-with(., $tlgAuthorNumber)]][1])else(
   if(string($tmWork))then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][tei:title[.=$tmWork]][1])else(
@@ -35,22 +34,37 @@ return <p>
 (: 
 
  < 1s
- collection('/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[contains(.//tei:author, 'Ctesias')]
- collection('/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[contains(.//tei:bibl[@type='publication'][@subtype='ancient']/tei:author, 'Ctesias')]
- collection('/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')//tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
+ collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[contains(.//tei:author, 'Ctesias')]
+ collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[contains(.//tei:bibl[@type='publication'][@subtype='ancient']/tei:author, 'Ctesias')]
+ collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')//tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
 
  
  1s
- collection('/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')//tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl/tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
- collection('/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')/tei:TEI/tei:text/tei:body/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl/tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
+ collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')//tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl/tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
+ collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')/tei:TEI/tei:text/tei:body/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl/tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
  
  4s
- collection('/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')//tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
+ collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')//tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
  
  ca. 31s
- collection('/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
- 
+ collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][contains(.//tei:author, 'Ctesias')]
+
+ => BEST
+ collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[contains(.//tei:bibl[@type='publication'][@subtype='ancient']/tei:title, 'Persika')] 
+
 :)
 
+(: 
+Finde Dateien mit mehreren illustrations und online resources
+collection('/data/idp.data/dclp_hd/DCLP/?select=*.xml;recurse=yes')[count(.//tei:div[@subtype='illustrations']/tei:listBibl/tei:bibl[tei:ptr]) > 1][count(.//tei:bibl[@type='illustration']) > 1][count(.//tei:bibl[@type='publication'][@subtype='principal']) > 1]
+:)
 
-collection('/db/apps/papyrillio/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[contains(.//tei:bibl[@type='publication'][@subtype='ancient']/tei:title, 'Persika')]
+(:
+Abragen auf ancient work and ancient author
+collection('/data/idp.data/dclp_hd/DCLP?select=*.xml;recurse=yes')[count(.//tei:div[@subtype='ancientEdition']//tei:bibl) > 1][.//tei:div[@subtype='ancientEdition']//tei:author/@ref][.//tei:div[@subtype='ancientEdition']//tei:certainty]
+:)
+
+<div>{
+for $lang in fn:distinct-values(collection('/data/idp.data/dclp_hd/DCLP?select=*.xml;recurse=yes')//tei:div[@type='edition']/@xml:lang)
+  return data($lang)
+}</div>
