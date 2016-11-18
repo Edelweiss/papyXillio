@@ -64,7 +64,14 @@ Abragen auf ancient work and ancient author
 collection('/data/idp.data/dclp_hd/DCLP?select=*.xml;recurse=yes')[count(.//tei:div[@subtype='ancientEdition']//tei:bibl) > 1][.//tei:div[@subtype='ancientEdition']//tei:author/@ref][.//tei:div[@subtype='ancientEdition']//tei:certainty]
 :)
 
+(:
+
+Finde alle languages
+
 <div>{
 for $lang in fn:distinct-values(collection('/data/idp.data/dclp_hd/DCLP?select=*.xml;recurse=yes')//tei:div[@type='edition']/@xml:lang)
   return data($lang)
 }</div>
+:)
+
+collection('/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[.//tei:term[@type='overview']]

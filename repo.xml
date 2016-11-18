@@ -10,4 +10,5 @@
     <target>papyrillio</target>
     <prepare>pre-install.xql</prepare>
     <finish/>
-    <deployed>2016-05-2
+    <deployed>2016-05-25T10:53:26.673+02:00</deployed>
+</meta>
