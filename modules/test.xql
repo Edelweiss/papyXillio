@@ -1,8 +1,11 @@
 xquery version "3.0";
 
-
+declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare namespace tei = "http://www.tei-c.org/ns/1.0";
+declare namespace example = "http://exist-db.org/xquery/examples";
+declare namespace file = "http://exist-db.org/xquery/file";
 
+declare option output:method "text";
 (:  :let $tlgAuthor := "Cleo", $tlgAuthorNumber := "", $tmWork := "", $tmWorkNumber := ""
 let $collection := '/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes'
 let $biblio := if(string($tlgAuthor))then(collection($collection)/tei:TEI/tei:text[1]/tei:body[1]/tei:div[@type='bibliography'][@subtype='ancientEdition']/tei:listBibl[1]/tei:bibl[@type='publication'][@subtype='ancient'][tei:author[.=$tlgAuthor]][1])else (
@@ -74,4 +77,36 @@ for $lang in fn:distinct-values(collection('/data/idp.data/dclp_hd/DCLP?select=*
 }</div>
 :)
 
-collection('/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[.//tei:term[@type='overview']]
+(:
+
+Für Holger:
+
+Liste aller Dateien
+in DCLP außer den herkulanischen Papyri, die sowohl bereits Text als
+auch mindestens einen link in
+//custEvent/graphic/@url
+haben.
+
+Vorabfragen:
+
+collection('/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[not(starts-with(.//tei:titleStmt/tei:title, 'P.Herc.'))]
+collection('/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[string(string-join(.//tei:div[@type='edition'], ''))]
+collection('/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[.//tei:custEvent/tei:graphic/@url]
+
+Finale Abfrage:
+
+let $nl := "&#10;"
+for $tm in collection('/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')[not(starts-with(.//tei:titleStmt/tei:title, 'P.Herc.'))][string(string-join(.//tei:div[@type='edition'], ''))][.//tei:custEvent/tei:graphic/@url]//tei:idno[@type='TM']
+return concat('https://github.com/DCLP/idp.data/blob/dclp/DCLP/', ceiling(number($tm) div 1000), '/', $tm, '.xml', $nl)
+ :)
+
+
+(:
+let $nl := "&#10;"
+let $newline := '&#13;&#10;'
+for $biblio in collection('/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')//tei:div[@subtype='principalEdition']//tei:bibl[not(tei:ptr/@target)]
+return concat($biblio/tei:title, ' ', $biblio/tei:biblScope[@unit='volume'], '|')
+:)
+
+for $biblio in collection('/data/idp.data/dclp/Biblio?select=*.xml;recurse=yes')[matches(string-join(.//tei:title, ' '), 'P.*Leeds')]
+return concat(substring-after(string($biblio/tei:bibl/@xml:id), 'b'), ';', $biblio/tei:bibl/@type, ';', string-join($biblio//tei:title, ';'), '|')
