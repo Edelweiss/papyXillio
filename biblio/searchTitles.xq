@@ -18,47 +18,56 @@ http://localhost:8080/exist/rest/db/apps/papyrillio/biblio/searchTitles.xq?regEx
 <html>
     <head>
         <title>Biblio - Search Titles</title>
+        <link rel="stylesheet" type="text/css" href="../resources/jquery/jquery-ui.min.css"/>
+        <link rel="stylesheet" type="text/css" href="../resources/css/style.css"/>
         <style type="text/css">
             label {{ width: 120px; display: block; float: left; }}
         </style>
+        
     </head>
 <body>
 <h1>Biblio - Search Titles</h1>
 
 <form action="#" method="get">
-<fieldset>
-    <legend>Regular Expression (e.g. 'Prag[ue]')</legend>
-    <input type="text" name="regExp" required="required" value="{request:get-parameter('regExp', (''))}"/>
-    {
-        if(request:get-parameter('type', 'book') = 'book')then(
-            <input type="radio" name="type" value="book" checked="checked">book</input>
-        )else(
-            <input type="radio" name="type" value="book">book</input>
-        )
-    }
-    {
-        if(request:get-parameter('type', 'book') = 'article')then(
-            <input type="radio" name="type" value="article" checked="checked">article</input>
-        )else(
-            <input type="radio" name="type" value="article">article</input>
-        )
-    }
-    {
-        if(request:get-parameter('type', 'book') = 'review')then(
-            <input type="radio" name="type" value="review" checked="checked">review</input>
-        )else(
-            <input type="radio" name="type" value="review">review</input>
-        )
-    }
-    {
-        if(request:get-parameter('type', 'book') = 'journal')then(
-            <input type="radio" name="type" value="journal" checked="checked">journal</input>
-        )else(
-            <input type="radio" name="type" value="journal">journal</input>
-        )
-    }
-    <input type="submit" value="search"/>
-</fieldset>
+    <fieldset>
+        <legend>Regular Expression (e.g. 'Prag[ue]' or 'P\.?S\.?I\.?')</legend>
+        <input type="text" name="regExp" required="required" value="{request:get-parameter('regExp', (''))}"/>
+        <div id="chooseType">
+            {
+                if(request:get-parameter('type', 'book') = 'book')then(
+                    <input type="radio" name="type" value="book" id="typeBook" checked="checked"/>
+                )else(
+                    <input type="radio" name="type" value="book" id="typeBook"/>
+                )
+            }
+            <label for="typeBook">book</label>
+            {
+                if(request:get-parameter('type', 'book') = 'article')then(
+                    <input type="radio" name="type" value="article" id="typeArticle" checked="checked"/>
+                )else(
+                    <input type="radio" name="type" value="article" id="typeArticle"/>
+                )
+            }
+            <label for="typeArticle">article</label>
+            {
+                if(request:get-parameter('type', 'book') = 'review')then(
+                    <input type="radio" name="type" value="review" id="typeReview" checked="checked"/>
+                )else(
+                    <input type="radio" name="type" value="review" id="typeReview"/>
+                )
+            }
+            <label for="typeReview">review</label>
+            {
+                if(request:get-parameter('type', 'book') = 'journal')then(
+                    <input type="radio" name="type" value="journal" id="typeJournal" checked="checked"/>
+                )else(
+                    <input type="radio" name="type" value="journal" id="typeJournal"/>
+                )
+            }
+            <label for="typeJournal">journal</label>
+        </div>
+        <button type="submit" value="Submit">search</button>
+    </fieldset>
 </form>
 
 <ul>
@@ -66,13 +75,12 @@ http://localhost:8080/exist/rest/db/apps/papyrillio/biblio/searchTitles.xq?regEx
   let $regExp := request:get-parameter('regExp', 'P.Köln 1')
   let $type := request:get-parameter('type', 'book')
   let $space := '&#32;'
-  for $biblio in collection('/data/idp.data/dclp/Biblio?select=*.xml;recurse=yes')[./tei:bibl/@type=$type][matches(string-join((./tei:bibl/tei:title, ./tei:bibl/tei:series/tei:title, ./tei:bibl/tei:note[@type='papyrological-series']/tei:bibl/tei:title), ' '), $regExp)]
+  for $biblio in collection('/data/idp.data/dclp/Biblio?select=*.xml;recurse=yes')[./tei:bibl/@type=$type][matches(string-join((./tei:bibl/tei:title, ./tei:bibl/tei:series/tei:title, ./tei:bibl/tei:note[@type='papyrological-series']/tei:bibl/tei:title, ./tei:bibl/tei:seg[@subtype='titre']), ' '), $regExp)]
     let $id := substring-after(string($biblio/tei:bibl/@xml:id), 'b')
     let $typeSubtype := concat($biblio/tei:bibl/@type, if($biblio/tei:bibl/@subtype)then(concat('-', $biblio/tei:bibl/@subtype))else())
-    let $titles := string-join($biblio/tei:bibl/tei:title||$biblio/tei:bibl/tei:series/tei:title, ' | ')
     return
       <li>
-        <a href="https://github.com/DCLP/idp.data/blob/dclp/Biblio/{ceiling(number($id) div 1000)}/{$id}.xml" target="_blank">{$id}</a>
+        <a href="https://github.com/DCLP/idp.data/blob/dclp/Biblio/{ceiling(number($id) div 1000)}/{$id}.xml" target="_blank" title="{string($biblio)}">{$id}</a>
         {$space}
         <b>{$typeSubtype}</b>
         {$space}
@@ -84,24 +92,48 @@ http://localhost:8080/exist/rest/db/apps/papyrillio/biblio/searchTitles.xq?regEx
         {
             for $title in $biblio/tei:bibl/tei:series/tei:title
             return
-                <li title="{string($title/@type)}">
-                    {string($title)}
-                    {if($title/following-sibling::tei:biblScope[@type='volume'])then(concat(' ', string($title/following-sibling::tei:biblScope[@type='volume'])))else()}
+                <li>
+                    <span title="{string($title/@type)}">
+                        {string($title)}
+                        {if($title/following-sibling::tei:biblScope[@type='volume'])then(concat(' ', string($title/following-sibling::tei:biblScope[@type='volume'])))else()}
+                    </span>
                 </li>
         }
         {
             for $title in $biblio/tei:bibl/tei:note[@type='papyrological-series']/tei:bibl/tei:title
             return
-                <li title="{string($title/@type)}">
-                    {string($title)}
-                    {if($title/following-sibling::tei:biblScope[@type='volume'])then(concat(' ', string($title/following-sibling::tei:biblScope[@type='volume'])))else()}
+                <li>
+                    <span title="{string($title/@type)}">
+                        {string($title)}
+                        {if($title/following-sibling::tei:biblScope[@type='volume'])then(concat(' ', string($title/following-sibling::tei:biblScope[@type='volume'])))else()}
+                    </span>
                 </li>
         }
         {
-            for $title in $biblio/tei:note[@resp='#BP']
+            for $title in $biblio/tei:bibl/tei:seg[@subtype='titre']
             return
-                <li title="note BP">
-                    {string($title)}
+                <li>
+                    <span title="titre">
+                        {string($title)}
+                    </span>
+                </li>
+        }
+        {
+            for $title in $biblio/tei:bibl/tei:note[@resp='#BP']
+            return
+                <li>
+                    <span title="note BP">
+                        {string($title)}
+                    </span>
+                </li>
+        }
+        {
+            for $title in $biblio/tei:bibl/tei:seg[@subtype='indexBis']
+            return
+                <li>
+                    <span title="indexBis">
+                        {string($title)}
+                    </span>
                 </li>
         }
         </ul>
@@ -113,5 +145,17 @@ http://localhost:8080/exist/rest/db/apps/papyrillio/biblio/searchTitles.xq?regEx
     for $i at $index in (8 to 16)
     return concat($index, '=', $i)
 }
+    <script type="text/javascript" src="../resources/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="../resources/jquery/jquery-ui.min.js"></script>
+    <script>
+        $(function(){{
+            $( "#chooseType" ).buttonset();
+            $('ul').tooltip();
+            $('button').button({{
+                icon: 'ui-icon-search',
+	            showLabel: true
+            }});
+        }});
+    </script>
 </body>
 </html>
