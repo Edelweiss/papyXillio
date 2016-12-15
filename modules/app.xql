@@ -116,9 +116,18 @@ declare function app:_searchEpiDocZombies($node as node(), $model as map(*)) {
 declare function app:autocomplete($node as node(), $model as map(*), $term as xs:string?) {
     if (string-length($term) > 3) then
         for $doc in collection("/db/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $term) or contains(data(tei:bibl/tei:title), $term)]
+          let $space := '&#32;'
           let $id     := string($doc/tei:bibl/tei:idno[@type='pi'])
-          let $author := string-join(if($doc/tei:bibl/tei:author/tei:forename or $doc/tei:bibl/tei:author/tei:surname)then(concat($doc/tei:bibl/tei:author/tei:forename, '&#23;' ,$doc/tei:bibl/tei:author/tei:surname))else($doc/tei:bibl/tei:author), ' ')
-          let $title  := string-join($doc/tei:bibl/tei:title, ' = ')
+          let $author := normalize-space(string-join($doc/tei:bibl/tei:author[1]//text(), ' '))
+
+          let $shortBp       := string($doc/tei:bibl/tei:note[@type='papyrological-series']/tei:title[@type='short-BP'])
+          let $checklist     := string($doc/tei:bibl/tei:note[@type='papyrological-series']/tei:title[@type='short-Checklist'])
+          let $titre         := string($doc/tei:bibl/tei:seg[@type='titre'])
+          let $series        := string($doc/tei:bibl/tei:series/tei:title)
+          let $standardMain  := string($doc/tei:bibl/tei:title[@type='main'][1])
+          let $standardShort := string($doc/tei:bibl/tei:title[starts-with(@type, 'short')][1])
+          let $title  := if(string($shortBp))then($shortBp)else(if(string($titre))then($titre)else(if(string($checklist))then($checklist)else(if(string($series))then($series)else(if(string($standardShort))then($standardShort)else(if(string($standardMain))then($standardMain)else())))))
+
           let $name   := concat('b', $id)
           let $content := concat($id, '. ', $author, if(string($author) and string($title))then(', ')else(), $title)
           return element {$name} {$content}
