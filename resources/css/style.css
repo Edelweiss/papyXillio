@@ -3,6 +3,10 @@ body{
     font-family: Times New Roman, Georgia, serif;
 }
 
+a, a:active, a:hover,  a:link, a:visited {
+    color: #003399;
+}
+
 .ui-widget {
     font-family: Georgia, serif;
     font-size: 80%;

@@ -21,55 +21,58 @@ http://localhost:8080/exist/rest/db/apps/papyrillio/biblio/searchTitles.xq?regEx
         <link rel="stylesheet" type="text/css" href="../resources/jquery/jquery-ui.min.css"/>
         <link rel="stylesheet" type="text/css" href="../resources/css/style.css"/>
         <style type="text/css">
-            label {{ width: 120px; display: block; float: left; }}
+            label {{ margin-right: 1em; }}
+            div.query {{ padding: 1em; background: steelblue; }}
+            div.results {{ height: 700px; overflow: scroll; background: lightsteelblue; }}
         </style>
         
     </head>
 <body>
 <h1>Biblio - Search Titles</h1>
+<div class="query">
+    <form action="#" method="get">
 
-<form action="#" method="get">
-    <fieldset>
-        <legend>Regular Expression (e.g. 'Prag[ue]' or 'P\.?S\.?I\.?')</legend>
-        <input type="text" name="regExp" required="required" value="{request:get-parameter('regExp', (''))}"/>
-        <div id="chooseType">
-            {
-                if(request:get-parameter('type', 'book') = 'book')then(
-                    <input type="radio" name="type" value="book" id="typeBook" checked="checked"/>
-                )else(
-                    <input type="radio" name="type" value="book" id="typeBook"/>
-                )
-            }
-            <label for="typeBook">book</label>
-            {
-                if(request:get-parameter('type', 'book') = 'article')then(
-                    <input type="radio" name="type" value="article" id="typeArticle" checked="checked"/>
-                )else(
-                    <input type="radio" name="type" value="article" id="typeArticle"/>
-                )
-            }
-            <label for="typeArticle">article</label>
-            {
-                if(request:get-parameter('type', 'book') = 'review')then(
-                    <input type="radio" name="type" value="review" id="typeReview" checked="checked"/>
-                )else(
-                    <input type="radio" name="type" value="review" id="typeReview"/>
-                )
-            }
-            <label for="typeReview">review</label>
-            {
-                if(request:get-parameter('type', 'book') = 'journal')then(
-                    <input type="radio" name="type" value="journal" id="typeJournal" checked="checked"/>
-                )else(
-                    <input type="radio" name="type" value="journal" id="typeJournal"/>
-                )
-            }
-            <label for="typeJournal">journal</label>
-        </div>
-        <button type="submit" value="Submit">search</button>
-    </fieldset>
-</form>
+            <label for="regExp" title="e.g. ‘P\.?S\.?I\.?'">Regular Expression</label>
+            <input type="text" name="regExp" required="required" value="{request:get-parameter('regExp', (''))}"/>
+            <div id="chooseType">
+                {
+                    if(request:get-parameter('type', 'book') = 'book')then(
+                        <input type="radio" name="type" value="book" id="typeBook" checked="checked"/>
+                    )else(
+                        <input type="radio" name="type" value="book" id="typeBook"/>
+                    )
+                }
+                <label for="typeBook">book</label>
+                {
+                    if(request:get-parameter('type', 'book') = 'article')then(
+                        <input type="radio" name="type" value="article" id="typeArticle" checked="checked"/>
+                    )else(
+                        <input type="radio" name="type" value="article" id="typeArticle"/>
+                    )
+                }
+                <label for="typeArticle">article</label>
+                {
+                    if(request:get-parameter('type', 'book') = 'review')then(
+                        <input type="radio" name="type" value="review" id="typeReview" checked="checked"/>
+                    )else(
+                        <input type="radio" name="type" value="review" id="typeReview"/>
+                    )
+                }
+                <label for="typeReview">review</label>
+                {
+                    if(request:get-parameter('type', 'book') = 'journal')then(
+                        <input type="radio" name="type" value="journal" id="typeJournal" checked="checked"/>
+                    )else(
+                        <input type="radio" name="type" value="journal" id="typeJournal"/>
+                    )
+                }
+                <label for="typeJournal">journal</label>
+            </div>
+            <button type="submit" value="Submit">search</button>
 
+    </form>
+</div>
+<div class="results">
 <ul>
 {
   let $regExp := request:get-parameter('regExp', 'P.Köln 1')
@@ -140,17 +143,13 @@ http://localhost:8080/exist/rest/db/apps/papyrillio/biblio/searchTitles.xq?regEx
       </li>
 }
 </ul>
-
-{
-    for $i at $index in (8 to 16)
-    return concat($index, '=', $i)
-}
+</div>
     <script type="text/javascript" src="../resources/jquery/jquery.min.js"></script>
     <script type="text/javascript" src="../resources/jquery/jquery-ui.min.js"></script>
     <script>
         $(function(){{
             $( "#chooseType" ).buttonset();
-            $('ul').tooltip();
+            $('body').tooltip();
             $('button').button({{
                 icon: 'ui-icon-search',
 	            showLabel: true

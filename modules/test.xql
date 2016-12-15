@@ -102,11 +102,20 @@ return concat('https://github.com/DCLP/idp.data/blob/dclp/DCLP/', ceiling(number
 
 
 (:
+ : Alle
 let $nl := "&#10;"
 let $newline := '&#13;&#10;'
 for $biblio in collection('/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')//tei:div[@subtype='principalEdition']//tei:bibl[not(tei:ptr/@target)]
 return concat($biblio/tei:title, ' ', $biblio/tei:biblScope[@unit='volume'], '|')
+
+ : Einzelne
+let $nl := "&#10;"
+let $newline := '&#13;&#10;'
+for $biblio in collection('/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')//tei:div[@subtype='principalEdition']//tei:bibl[not(tei:ptr/@target)][tei:title='P. Yale']
+return concat($biblio/tei:title, ' ', $biblio/tei:biblScope[@unit='volume'], ' ', string-join($biblio/tei:biblScope[not(@unit='volume')], ' '), '|')
 :)
 
-for $biblio in collection('/data/idp.data/dclp/Biblio?select=*.xml;recurse=yes')[matches(string-join(.//tei:title, ' '), 'P.*Leeds')]
-return concat(substring-after(string($biblio/tei:bibl/@xml:id), 'b'), ';', $biblio/tei:bibl/@type, ';', string-join($biblio//tei:title, ';'), '|')
+let $nl := "&#10;"
+let $newline := '&#13;&#10;'
+for $biblio in collection('/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')//tei:div[@subtype='principalEdition']//tei:bibl[not(tei:ptr/@target)]
+return concat($biblio/tei:title, ' ', $biblio/tei:biblScope[@unit='volume'], '|')

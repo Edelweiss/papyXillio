@@ -31,6 +31,7 @@ import idp.data
 xmldb:remove('/db/data/idp.data/dclp/DCLP')
 xmldb:create-collection('/db/data', 'tmp')
 xmldb:store-files-from-pattern('/db/data/idp.data/dclp', '/Users/elemmire/data/idp.data/dclp/dclp', 'DCLP/*/*.xml', 'text/xml', true())
+xmldb:store-files-from-pattern('/db/data/idp.data/dclp', '/Users/elemmire/data/idp.data/dclp/dclp', 'HGV_trans_EpiDoc/*.xml', 'text/xml', true())
 :)
 
 
