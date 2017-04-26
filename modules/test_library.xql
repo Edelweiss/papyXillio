@@ -10,7 +10,10 @@ declare option output:method "text";
 
 (:
 
+file:exists('/Users/elemmire/data/idp.data/dclp/development/Biblio/1/1.xml')
 file:list('/Users/elemmire/data/idp.data/dclp/dclp')
+file:sync('/db/data/idp.data/dclp/DCLP/1', '/Users/elemmire/data/idp.data/dclp/development/DCLP/1', ())
+=> copies files from server to system path
 
 collections
 xmldb:collection-available('/db/data/idp.data/dclp/HGV_trans_EpiDoc')
@@ -34,6 +37,10 @@ xmldb:store-files-from-pattern('/db/data/idp.data/dclp', '/Users/elemmire/data/i
 xmldb:store-files-from-pattern('/db/data/idp.data/dclp', '/Users/elemmire/data/idp.data/dclp/dclp', 'HGV_trans_EpiDoc/*.xml', 'text/xml', true())
 :)
 
+(:
+/data/idp.data/dclp/Biblio/1/1.xml
 
 
-xmldb:store-files-from-pattern('/db/data/idp.data/dclp', '/Users/elemmire/data/idp.data/dclp/dclp', 'DCLP/*/*.xml', 'text/xml', true())
+:)
+
+file:sync('/db/data/idp.data/dclp/DCLP/1', '/Users/elemmire/data/idp.data/dclp/development/DCLP/1', ())
