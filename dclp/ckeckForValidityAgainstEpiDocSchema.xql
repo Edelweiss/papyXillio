@@ -1,8 +1,12 @@
 xquery version "3.0";
 (: $Id$ :)
 
-(:~
- : Simple XQuery example without HTML templating. The entire app is contained in one file.
+(:
+
+sample url
+
+http://localhost:8080/exist/rest/db/apps/papyrillio/dclp/ckeckForValidityAgainstEpiDocSchema.xql
+
 :)
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace session="http://exist-db.org/xquery/session";
@@ -43,34 +47,67 @@ declare function local:getInvalidEpiDocFiles() as node()*
 
 declare function local:getEpiDocErrors() as node()*
 {
-    <ul id="errors">
-    {
-      for $errors in local:getInvalidEpiDocFiles()
-        let $errorMessage := substring-before(data($errors), ';')
-        group by $errorMessage
-        return <li><b>{$errorMessage} (#{count($errors)})</b>
-        <ul>
-          {
-            for $instance in $errors[position()<20]
-              return <li><a href="{data($instance/@file)}#L{data($instance/@line)}">{if(string($instance/@tm))then(string($instance/@tm))else(concat(replace(data($instance/@file), '^.*/(\d+)\.xml.*$', '$1'), ' ???'))}</a><span> ({normalize-space(substring-after(data($instance), ';'))})</span></li>
-          }
-        </ul></li>
-    }
-    </ul>
+    let $tm := request:get-parameter('tm', ())
+    let $file := if(matches($tm, '^\d+$'))then(doc(concat('/db/data/idp.data/dclp/DCLP/', ceiling(number($tm) div 1000), '/', $tm, '.xml')))else()
+    return if($tm = '*')then(
+        <ul id="errors">
+        {
+          for $errors in local:getInvalidEpiDocFiles()
+            let $errorMessage := substring-before(data($errors), ';')
+            group by $errorMessage
+            return <li><b>{$errorMessage} (#{count($errors)})</b>
+            <ul>
+              {
+                for $instance in $errors[position()<20]
+                  return <li><a href="{data($instance/@file)}#L{data($instance/@line)}">{if(string($instance/@tm))then(string($instance/@tm))else(concat(replace(data($instance/@file), '^.*/(\d+)\.xml.*$', '$1'), ' ???'))}</a><span> ({normalize-space(substring-after(data($instance), ';'))})</span></li>
+              }
+            </ul></li>
+        }
+        </ul>
+    )else(if($file)then(
+        <div>
+            <h4>Error report for TM no. {$tm}</h4>
+                {
+                    let $schema := xs:anyURI('/db/data/epidoc/schema/latest/tei-epidoc.rng')
+                    let $validation-report := validation:jing-report($file, $schema)
+                    return
+                    <div>
+                        <b class="{$validation-report/status}">{$validation-report/status}</b>
+                        {'&#32;'}
+                        <small>({concat($validation-report/duration, ' ', $validation-report/duration/@unit)})</small>
+                        <ul>
+                        {for $message in $validation-report/message
+                            return <li>
+                                <b>{concat($message/@level, ' line ', $message/@line, ' column ', $message/@column, '. ')}</b>
+                                {string($message)}
+                            </li>
+                        }
+                        </ul>
+                    </div>
+                }
+        </div>
+    )else())
 };
 
 <html>
     <head>
         <title>DCLP - EpiDoc errors</title>
-        <link rel="stylesheet" type="text/css" href="../resources/css/jquery/dark-hive/jquery-ui-1.8.17.custom.css" />
+        <link rel="stylesheet" type="text/css" href="../resources/jquery/jquery-ui.min.css"/>
+        <link rel="stylesheet" type="text/css" href="../resources/css/style.css"/>
         <script type="text/javascript" src="../resources/js/jquery/jquery-1.7.1.min.js"></script>
         <script type="text/javascript" src="../resources/js/jquery/jquery-ui-1.8.17.custom.min.js"></script>
     </head>
     <body>
-        <h3>Invalid DCLP EpiDoc files</h3>
+        <h3>Check for validity against latest EpiDoc schema</h3>
+        <form>
+            <label for="tm">TM no.</label>
+            {'&#32;'}
+            <input type="text" name="tm"/>
+            {'&#32;'}
+            <i><small>(Enter TM no. of specific DCLP file you want to have checked or write »*« for all)</small></i>
+        </form>
         { local:getEpiDocErrors() }
         { fn:current-dateTime() }
-        
         <script type="text/javascript" src="js/dclp.js"></script>
     </body>
 </html>

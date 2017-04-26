@@ -11,3 +11,11 @@ a, a:active, a:hover,  a:link, a:visited {
     font-family: Georgia, serif;
     font-size: 80%;
 }
+
+.valid{
+    color: green;
+}
+
+.invalid{
+    color: red;
+}
