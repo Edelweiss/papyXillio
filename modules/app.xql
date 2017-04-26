@@ -155,8 +155,9 @@ declare function app:biblio-html($node as node(), $model as map(*), $search as x
         for $doc in collection("/db/data/idp.data/dclp/Biblio/?select=*.xml;recurse=yes")[contains(data(tei:bibl/tei:author), $search) or contains(data(tei:bibl/tei:title), $search)]
           let $id     := string($doc/tei:bibl/tei:idno[@type='pi'])
           let $author := string-join(if($doc/tei:bibl/tei:author/tei:forename or $doc/tei:bibl/tei:author/tei:surname)then(concat($doc/tei:bibl/tei:author/tei:forename, '&#23;' ,$doc/tei:bibl/tei:author/tei:surname))else($doc/tei:bibl/tei:author), ' ')
+          let $checklist := normalize-space($doc//tei:note[@type='papyrological-series'])
           let $title  := string-join($doc/tei:bibl/tei:title, ' = ')
-          return papy:biblioToHtml($id, $author, $title)
+          return papy:biblioToHtml($id, $author, if($checklist)then($checklist)else($title))
     else
     (
         if($get) then
@@ -170,7 +171,7 @@ declare function app:snippet($node as node(), $model as map(*), $biblio as xs:in
     if ($biblio) then
         let $epiDoc := doc(concat('/db/data/idp.data/dclp/Biblio/', papy:getFolder1000($biblio), '/', $biblio, '.xml'))
         let $author := if($epiDoc/tei:bibl/tei:author[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:author[1]))else(if($epiDoc/tei:bibl/tei:editor[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:editor[1]))else())
-        let $title  := data($epiDoc/tei:bibl/tei:title[1])
+        let $title  := data(if($epiDoc//tei:note[@type='papyrological-series'])then($epiDoc//tei:note[@type='papyrological-series'])else($epiDoc/tei:bibl/tei:title[1]))
         let $date   := data($epiDoc/tei:bibl/tei:date[1])
         return
             <p id="b{$biblio}">
