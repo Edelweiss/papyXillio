@@ -115,7 +115,6 @@ for $biblio in collection('/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')//
 return concat($biblio/tei:title, ' ', $biblio/tei:biblScope[@unit='volume'], ' ', string-join($biblio/tei:biblScope[not(@unit='volume')], ' '), '|')
 :)
 
-let $nl := "&#10;"
-let $newline := '&#13;&#10;'
-for $biblio in collection('/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')//tei:div[@subtype='principalEdition']//tei:bibl[not(tei:ptr/@target)]
-return concat($biblio/tei:title, ' ', $biblio/tei:biblScope[@unit='volume'], '|')
+
+for $item in collection('/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')[starts-with(.//tei:idno[@type='dclp-hybrid'], 'na')][starts-with(.//tei:bibl[@type='printed'], 'ZPE')]
+  return string($item//tei:idno[@type='TM'])
