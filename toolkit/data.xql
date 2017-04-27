@@ -44,34 +44,50 @@ declare function local:update($update as xs:string?, $list as xs:string?) as nod
 
 declare function local:updateBiblio($list as xs:string?) as node(){
     <li>Biblio
-        <ul>
-        {
-            for $item in tokenize($list, $SEPARATOR)
-                let $filename := concat('/Biblio/', papy:getFolder1000(number($item)),'/', $item, '.xml')
-                let $source := concat($SOURCE_REPOSITORY, $filename)
-                let $action := if(file:exists($source))then('update')else('delete')
-                let $destination := concat($REPOSITORY, $filename)
-                return <li>{$source} [{ $action }] → {$destination}</li>
-        }
-        </ul>
+        {local:handleTmLikes('Biblio', $list, '')}
     </li>
 };
 
 declare function local:updateHgv($list as xs:string?) as node(){
-    <li>
-        HGV
-    </li>
-};
-
-declare function local:updateDdb($list as xs:string?) as node(){
-    <li>
-        DDB
+    <li>HGV
+        {local:handleTmLikes('HGV_meta_EpiDoc', $list, 'HGV')}
     </li>
 };
 
 declare function local:updateDclp($list as xs:string?) as node(){
+    <li>DCLP
+        {local:handleTmLikes('DCLP', $list, '')}
+    </li>
+};
+
+declare function local:handleTmLikes($folder, $list as xs:string?, $prefix as xs:string?) as node(){
+    <ul>
+    {
+        for $item in tokenize($list, $SEPARATOR)
+            let $action := if(starts-with($item, '-'))then('delete')else('update')
+            let $id := if($action = 'delete')then(substring-after($item, '-'))else($item)
+            let $filepath := concat($folder, '/', $prefix,papy:getFolder1000(number(replace($id, '[^\d]', ''))))
+            let $filename := concat($id, '.xml')
+            let $source := concat($SOURCE_REPOSITORY, '/', $filepath)
+            let $destination := concat($REPOSITORY, '/', $filepath)
+            let $result := if($action = 'delete')then(local:delete($destination, $filename))else(local:update($destination, $source, $filename))
+            return <li>{ $action } { ' ' } { concat($source, '/', $filename) } → {$destination} [{$result}]</li>
+    }
+    </ul>
+};
+
+declare function local:update($destination as xs:string, $source as xs:string, $file as xs:string) as xs:string*{
+    if(xmldb:collection-available($destination))then(xmldb:store-files-from-pattern($destination, $source, $file, 'text/xml', true()))else('collection doesn’t exist')
+};
+
+(: cl: contrary to what is said in the documentation, xmldb:remove doesn’t return a singular item(); on success it returns nothing :)
+declare function local:delete($folder as xs:string, $file as xs:string) as xs:string* {
+    if(xmldb:collection-available($folder) and fn:doc-available(concat($folder, '/', $file)))then(xmldb:remove($folder, $file), 'file deleted')else(concat('could not delete file ', $file, ' in folder ', $folder))
+};
+
+declare function local:updateDdb($list as xs:string?) as node(){
     <li>
-        DCLP
+        DDB - sorry not implemented yet (same goes for HGV, Translations and APIS)
     </li>
 };
 
@@ -84,16 +100,14 @@ declare function local:updateDclp($list as xs:string?) as node(){
     </head>
     <body>
         <h3>idp.data</h3>
-
-        <a href="?update=biblio&amp;list=1,2,3">Update Biblio</a>
-        { ' ' }
-        <a href="?update=ddb&amp;list=1,2,3">Update DDB</a>
-        { ' ' }
-        <a href="?update=hgv&amp;list=1,2,3">Update HGV</a>
-        { ' ' }
-        <a href="?update=dclp&amp;list=1,2,3">Update DCLP</a>
-        { ' ' }
-        <a href="?update=repo&amp;list=1,2,3">Update all</a>
+        <form method="get">
+            <input type="text" name="list" value="1,2,3"/>
+            <button type="submit" name="update" value="biblio">Biblio</button>
+            <button type="submit" name="update" value="dclp">DCLP</button>
+            <button type="submit" name="update" value="ddb">DDB</button>
+            <button type="submit" name="update" value="hgv">HGV</button>
+            <!--button type="submit" name="update" value="repo">all</button-->
+        </form>
 
         { if(request:get-parameter('update', ()))then(local:update(request:get-parameter('update', ()), request:get-parameter('list', ())))else() }
     </body>
