@@ -43,4 +43,4 @@ xmldb:store-files-from-pattern('/db/data/idp.data/dclp', '/Users/elemmire/data/i
 
 :)
 
-file:sync('/db/data/idp.data/dclp/DCLP/1', '/Users/elemmire/data/idp.data/dclp/development/DCLP/1', ())
+xmldb:remove('/data/idp.data/dclp/Biblio/1', '1.xml')
