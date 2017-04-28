@@ -4,11 +4,12 @@ import module namespace request="http://exist-db.org/xquery/request";
 import module namespace papy='http://www.papy' at '../modules/papy.xql';
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
+declare namespace tei = "http://www.tei-c.org/ns/1.0";
 declare option output:method "html5";
 declare option output:media-type "text/html";
 
 declare variable $SOURCE_REPOSITORY := '/Users/elemmire/data/idp.data/dclp/development';
-declare variable $REPOSITORY := '/data/idp.data/dclp';
+declare variable $REPOSITORY := '/db/data/idp.data/dclp';
 declare variable $SEPARATOR := ',';
 
 (: 
@@ -64,8 +65,8 @@ declare function local:handleTmLikes($folder, $list as xs:string?, $prefix as xs
     <ul>
     {
         for $item in tokenize($list, $SEPARATOR)
-            let $action := if(starts-with($item, '-'))then('delete')else('update')
-            let $id := if($action = 'delete')then(substring-after($item, '-'))else($item)
+            let $action := local:getAction($item)
+            let $id := local:getId($item)
             let $filepath := concat($folder, '/', $prefix,papy:getFolder1000(number(replace($id, '[^\d]', ''))))
             let $filename := concat($id, '.xml')
             let $source := concat($SOURCE_REPOSITORY, '/', $filepath)
@@ -74,6 +75,36 @@ declare function local:handleTmLikes($folder, $list as xs:string?, $prefix as xs
             return <li>{ $action } { ' ' } { concat($source, '/', $filename) } → {$destination} [{$result}]</li>
     }
     </ul>
+};
+
+
+(:
+  <idno type="filename">cpr.17A.AnhangA</idno>
+:)
+declare function local:handleComplicatedStuff($folder, $list as xs:string?) as node(){
+    <ul>
+    {
+        for $item in tokenize($list, $SEPARATOR)
+            let $action := local:getAction($item)
+            let $id := local:getId($item)
+            let $filename := concat($id, '.xml')
+
+            let $searchPath := concat($REPOSITORY, '/', $folder, '?select=*.xml;recurse=yes')
+            let $epiDocFile := document-uri(collection($searchPath)[string(.//tei:idno['filename'][1]) = $id])
+            let $destination := replace($epiDocFile, concat('/', $filename), '')
+            let $source := replace($destination, $REPOSITORY, $SOURCE_REPOSITORY)
+            let $result := if($action = 'delete')then(local:delete($destination, $filename))else(local:update($destination, $source, $filename))
+            return <li>{ $action } { ' ' } { concat($source, '/', $filename) } → {$destination} [{$result}]</li>
+    }
+    </ul>
+};
+
+declare function local:getAction($item as xs:string) as xs:string {
+    if(starts-with($item, '-'))then('delete')else('update')
+};
+
+declare function local:getId($item as xs:string) as xs:string {
+    if(starts-with($item, '-'))then(substring-after($item, '-'))else($item)
 };
 
 declare function local:update($destination as xs:string, $source as xs:string, $file as xs:string) as xs:string*{
@@ -87,7 +118,19 @@ declare function local:delete($folder as xs:string, $file as xs:string) as xs:st
 
 declare function local:updateDdb($list as xs:string?) as node(){
     <li>
-        DDB - sorry not implemented yet (same goes for HGV, Translations and APIS)
+        DDB
+        {local:handleComplicatedStuff('DDB_EpiDoc_XML', $list)}
+
+        <!-- 1 Stufe
+        chr.wilck/chr.wilck.11.xml
+        
+        2 Stufen
+        cpr/cpr.17A/cpr.17A.13rpdupl.xml
+        
+        Problematisch
+        c.pap.gr/c.pap.gr.2.1/c.pap.gr.2.1.25.xml
+        c.pap.gr/c.pap.gr.2.1/c.pap.gr.2.1.5brpdupl.xml
+        c.pap.gr/cpr.17A/cpr.17A.AnhangA.xml (oder das Hinterste immer) -->
     </li>
 };
 
@@ -101,14 +144,14 @@ declare function local:updateDdb($list as xs:string?) as node(){
     <body>
         <h3>idp.data</h3>
         <form method="get">
-            <input type="text" name="list" value="1,2,3"/>
+            <input type="text" name="list" value="{request:get-parameter('list', '1,2,3')}"/>
             <button type="submit" name="update" value="biblio">Biblio</button>
             <button type="submit" name="update" value="dclp">DCLP</button>
             <button type="submit" name="update" value="ddb">DDB</button>
             <button type="submit" name="update" value="hgv">HGV</button>
             <!--button type="submit" name="update" value="repo">all</button-->
         </form>
-
+        (Not implemented yet: APIS, Translations)
         { if(request:get-parameter('update', ()))then(local:update(request:get-parameter('update', ()), request:get-parameter('list', ())))else() }
     </body>
 </html>
