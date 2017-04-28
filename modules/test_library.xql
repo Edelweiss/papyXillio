@@ -43,4 +43,7 @@ xmldb:store-files-from-pattern('/db/data/idp.data/dclp', '/Users/elemmire/data/i
 
 :)
 
-xmldb:remove('/data/idp.data/dclp/Biblio/1', '1.xml')
+
+for $i in collection('/db/data/idp.data/dclp/DDB_EpiDoc_XML?select=*.xml;recurse=yes')
+return '#'
+

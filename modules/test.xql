@@ -116,5 +116,5 @@ return concat($biblio/tei:title, ' ', $biblio/tei:biblScope[@unit='volume'], ' '
 :)
 
 
-for $item in collection('/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')[starts-with(.//tei:idno[@type='dclp-hybrid'], 'na')][starts-with(.//tei:bibl[@type='printed'], 'ZPE')]
+for $item in collection('/db/data/idp.data/dclp/DCLP?select=*.xml;recurse=yes')[starts-with(.//tei:idno[@type='dclp-hybrid'], 'na')][starts-with(.//tei:bibl[@type='printed'], 'ZPE')]
   return string($item//tei:idno[@type='TM'])
