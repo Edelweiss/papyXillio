@@ -123,10 +123,10 @@ declare function local:updateDdb($list as xs:string?) as node(){
 
         <!-- 1 Stufe
         chr.wilck/chr.wilck.11.xml
-        
+
         2 Stufen
         cpr/cpr.17A/cpr.17A.13rpdupl.xml
-        
+
         Problematisch
         c.pap.gr/c.pap.gr.2.1/c.pap.gr.2.1.25.xml
         c.pap.gr/c.pap.gr.2.1/c.pap.gr.2.1.5brpdupl.xml
