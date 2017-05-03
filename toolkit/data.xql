@@ -11,64 +11,61 @@ declare option output:media-type "text/html";
 declare variable $SOURCE_REPOSITORY := '/Users/elemmire/data/idp.data/dclp/development';
 declare variable $REPOSITORY := '/db/data/idp.data/dclp';
 declare variable $SEPARATOR := ',';
+declare variable $DDB_SERIES := file:list(concat($SOURCE_REPOSITORY, '/DDB_EpiDoc_XML'));
 
 (: 
- $update => biblio, ddb, hgv, dclp or repo for all
- $list => separated list of items that need to be updated or empty for all files
- :)
-declare function local:update($update as xs:string?, $list as xs:string?) as node() {
-    <p>
-        <span>[Update {$update} | List {$list}]</span>
-        <ul>
-        {
-            if($update = 'biblio')then(
-                local:updateBiblio($list)
-            )else(
-                if($update = 'hgv')then(
-                    local:updateHgv($list)
-                )else(
-                    if($update = 'ddb')then(
-                        local:updateDdb($list)
-                    )else(
-                        if($update = 'dclp')then(
-                            local:updateDclp($list)
-                        )else(
-                            local:updateBiblio($list), local:updateHgv($list), local:updateDdb($list), local:updateDclp($list)
-                        )
-                    )
-                )
-            )
-        }
-        </ul>
-    </p>
+ $update => biblio, ddb, hgv, dclp
+ $list => separated list of items that need to be updated, preceded by a minus sign if the respective item is to be deleted
+:)
+declare function local:sync($update as xs:string?, $list as xs:string?) as node() {
+    <ul>
+    {
+        if($update = 'biblio')then(
+            <li>
+                Biblio
+                {local:processSyncList('Biblio', $list)}
+            </li>
+        )else(if($update = 'hgv')then(
+            <li>
+                HGV
+                {local:processSyncList('HGV_meta_EpiDoc', $list)}
+            </li>
+        )else(if($update = 'ddb')then(
+            <li>
+                DDB
+                {local:processSyncList('DDB_EpiDoc_XML', $list)}
+            </li>
+        )else(if($update = 'dclp')then(
+            <li>
+                DCLP
+                {local:processSyncList('DCLP', $list)}
+            </li>
+        )else())))
+    }
+    </ul>
 };
 
-declare function local:updateBiblio($list as xs:string?) as node(){
-    <li>Biblio
-        {local:handleTmLikes('Biblio', $list, '')}
-    </li>
-};
+(: Test Cases for DDB
+   c.ep.lat.2, chr.wilck.11, c.pap.gr.2.1.25, c.pap.gr.2.1.5brpdupl, cpr.17A.AnhangA, sosol.2013.0133
 
-declare function local:updateHgv($list as xs:string?) as node(){
-    <li>HGV
-        {local:handleTmLikes('HGV_meta_EpiDoc', $list, 'HGV')}
-    </li>
-};
+   Test Cases for DCLP
+   555
 
-declare function local:updateDclp($list as xs:string?) as node(){
-    <li>DCLP
-        {local:handleTmLikes('DCLP', $list, '')}
-    </li>
-};
+   Test Cases for Biblio
+   1, 2, 3, 95999
 
-declare function local:handleTmLikes($folder, $list as xs:string?, $prefix as xs:string?) as node(){
+   Test Cases for HGV
+   993a
+:)
+declare function local:processSyncList($folder, $list as xs:string?) as node(){
     <ul>
     {
         for $item in tokenize($list, $SEPARATOR)
+            let $item := normalize-space($item)
             let $action := local:getAction($item)
             let $id := local:getId($item)
-            let $filepath := concat($folder, '/', $prefix,papy:getFolder1000(number(replace($id, '[^\d]', ''))))
             let $filename := concat($id, '.xml')
+            let $filepath := local:getFilepath($folder, $id)
             let $source := concat($SOURCE_REPOSITORY, '/', $filepath)
             let $destination := concat($REPOSITORY, '/', $filepath)
             let $result := if($action = 'delete')then(local:delete($destination, $filename))else(local:update($destination, $source, $filename))
@@ -77,26 +74,20 @@ declare function local:handleTmLikes($folder, $list as xs:string?, $prefix as xs
     </ul>
 };
 
+declare function local:getFilepath($folder as xs:string, $id as xs:string) as xs:string?{
+    if($folder = 'DDB_EpiDoc_XML')then(
+        let $series := local:getlongestPath($DDB_SERIES, $id)
+        let $volume := local:getlongestPath(file:list(concat($SOURCE_REPOSITORY, '/', $folder, '/', $series)), $id)
+        return concat($folder, '/', $series, if(string($volume))then(concat('/', $volume))else(''))
+    ) else (
+        concat($folder, '/', if($folder = 'HGV_meta_EpiDoc')then('HGV')else(''), papy:getFolder1000(number(replace($id, '[^\d]', ''))))
+    )
+};
 
-(:
-  <idno type="filename">cpr.17A.AnhangA</idno>
-:)
-declare function local:handleComplicatedStuff($folder, $list as xs:string?) as node(){
-    <ul>
-    {
-        for $item in tokenize($list, $SEPARATOR)
-            let $action := local:getAction($item)
-            let $id := local:getId($item)
-            let $filename := concat($id, '.xml')
-
-            let $searchPath := concat($REPOSITORY, '/', $folder, '?select=*.xml;recurse=yes')
-            let $epiDocFile := document-uri(collection($searchPath)[string(.//tei:idno['filename'][1]) = $id])
-            let $destination := replace($epiDocFile, concat('/', $filename), '')
-            let $source := replace($destination, $REPOSITORY, $SOURCE_REPOSITORY)
-            let $result := if($action = 'delete')then(local:delete($destination, $filename))else(local:update($destination, $source, $filename))
-            return <li>{ $action } { ' ' } { concat($source, '/', $filename) } → {$destination} [{$result}]</li>
-    }
-    </ul>
+declare function local:getlongestPath($fileList, $id as xs:string?) as xs:string?{
+    let $list := $fileList/file:directory[starts-with($id, @name)]/@name (: get matches :)
+    let $item := $list[not(string-length(.) < $list/string-length(.))][1] (: get longest, i.e. best match :)
+    return $item
 };
 
 declare function local:getAction($item as xs:string) as xs:string {
@@ -116,24 +107,6 @@ declare function local:delete($folder as xs:string, $file as xs:string) as xs:st
     if(xmldb:collection-available($folder) and fn:doc-available(concat($folder, '/', $file)))then(xmldb:remove($folder, $file), 'file deleted')else(concat('could not delete file ', $file, ' in folder ', $folder))
 };
 
-declare function local:updateDdb($list as xs:string?) as node(){
-    <li>
-        DDB
-        {local:handleComplicatedStuff('DDB_EpiDoc_XML', $list)}
-
-        <!-- 1 Stufe
-        chr.wilck/chr.wilck.11.xml
-
-        2 Stufen
-        cpr/cpr.17A/cpr.17A.13rpdupl.xml
-
-        Problematisch
-        c.pap.gr/c.pap.gr.2.1/c.pap.gr.2.1.25.xml
-        c.pap.gr/c.pap.gr.2.1/c.pap.gr.2.1.5brpdupl.xml
-        c.pap.gr/cpr.17A/cpr.17A.AnhangA.xml (oder das Hinterste immer) -->
-    </li>
-};
-
 <html>
     <head>
         <title>IDP.DATA</title>
@@ -142,16 +115,18 @@ declare function local:updateDdb($list as xs:string?) as node(){
         <script type="text/javascript" src="../resources/js/jquery/jquery-ui-1.8.17.custom.min.js"></script>
     </head>
     <body>
-        <h3>idp.data</h3>
+        <h3>idp.data sync</h3>
         <form method="get">
             <input type="text" name="list" value="{request:get-parameter('list', '1,2,3')}"/>
             <button type="submit" name="update" value="biblio">Biblio</button>
             <button type="submit" name="update" value="dclp">DCLP</button>
             <button type="submit" name="update" value="ddb">DDB</button>
             <button type="submit" name="update" value="hgv">HGV</button>
-            <!--button type="submit" name="update" value="repo">all</button-->
+            <button type="submit" name="update" value="apis" onclick="alert('Sorry, not implemented yet…'); return false;">APIS</button>
+            <button type="submit" name="update" value="translations" onclick="alert('Sorry, not implemented yet…'); return false;">Translations</button>
         </form>
-        (Not implemented yet: APIS, Translations)
-        { if(request:get-parameter('update', ()))then(local:update(request:get-parameter('update', ()), request:get-parameter('list', ())))else() }
+        { if(request:get-parameter('update', ()))then(
+            local:sync(request:get-parameter('update', ()), request:get-parameter('list', ())))
+          else() }
     </body>
 </html>

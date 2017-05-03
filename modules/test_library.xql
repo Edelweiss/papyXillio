@@ -44,6 +44,6 @@ xmldb:store-files-from-pattern('/db/data/idp.data/dclp', '/Users/elemmire/data/i
 :)
 
 
-for $i in collection('/db/data/idp.data/dclp/DDB_EpiDoc_XML?select=*.xml;recurse=yes')
-return '#'
+let $list := file:list('/Users/elemmire/data/idp.data/dclp/development/DDB_EpiDoc_XML/cpr')/file:directory[starts-with('cpr.17A.AnhangA', @name)]/@name
+  return $list[not(string-length(.) < $list/string-length(.))]
 
