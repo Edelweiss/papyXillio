@@ -171,20 +171,29 @@ declare function app:snippet($node as node(), $model as map(*), $biblio as xs:in
     if ($biblio) then
         let $epiDoc := doc(concat('/db/data/idp.data/dclp/Biblio/', papy:getFolder1000($biblio), '/', $biblio, '.xml'))
         let $author := if($epiDoc/tei:bibl/tei:author[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:author[1]))else(if($epiDoc/tei:bibl/tei:editor[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:editor[1]))else())
-        let $title  := data(if($epiDoc//tei:note[@type='papyrological-series'])then($epiDoc//tei:note[@type='papyrological-series'])else($epiDoc/tei:bibl/tei:title[1]))
+        let $title  := data($epiDoc/tei:bibl/tei:title[1])
+        let $checklist := data($epiDoc//tei:note[@type='papyrological-series'])
         let $date   := data($epiDoc/tei:bibl/tei:date[1])
         return
             <p id="b{$biblio}">
                 <a href="http://papyri.info/biblio/{$biblio}" target="_blank" class="id">{$biblio}</a>.
-                <span class="author">{$author}</span>
-                {if($author and $title)then(', ')else()}
-                <span class="title">{$title}</span>
-                {if($date)then(<span> ({$date})</span>)else()}
+                {
+                    if(string($checklist))then(
+                        <span class="title">{$checklist}</span>
+                    )else(
+                        <span>
+                            <span class="author">{$author}</span>
+                            {if($author and $title)then(', ')else()}
+                            <span class="title">{$title}</span>
+                            {if($date)then(<span> ({$date})</span>)else()}
+                        </span>
+                    )
+                }
             </p>
     else
     (
         if($dclp) then
-            doc(concat('/db/data/idp.data/dclp/Biblio/', papy:getFolder1000($dclp), '/', $dclp, '.xml'))
+            doc(concat('/db/data/idp.data/dclp/DCLP/', papy:getFolder1000($dclp), '/', $dclp, '.xml'))
         else
         ()
     )
