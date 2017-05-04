@@ -170,10 +170,10 @@ declare function app:biblio-html($node as node(), $model as map(*), $search as x
 declare function app:snippet($node as node(), $model as map(*), $biblio as xs:integer?, $ddb as xs:string?, $hgv as xs:string?, $dclp as xs:integer?) {
     if ($biblio) then
         let $epiDoc := doc(concat('/db/data/idp.data/dclp/Biblio/', papy:getFolder1000($biblio), '/', $biblio, '.xml'))
-        let $author := if($epiDoc/tei:bibl/tei:author[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:author[1]))else(if($epiDoc/tei:bibl/tei:editor[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:editor[1]))else())
-        let $title  := data($epiDoc/tei:bibl/tei:title[1])
-        let $checklist := data($epiDoc//tei:note[@type='papyrological-series'])
-        let $date   := data($epiDoc/tei:bibl/tei:date[1])
+        let $author:= if($epiDoc/tei:bibl/tei:author[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:author[1]))else(if($epiDoc/tei:bibl/tei:editor[1])then(papy:flattenAuthor($epiDoc/tei:bibl/tei:editor[1]))else())
+        let $title := data($epiDoc/tei:bibl/tei:title[1])
+        let $date := data($epiDoc/tei:bibl/tei:date[1])
+        let $checklist := data($epiDoc/tei:bibl/tei:note[@type='papyrological-series']/tei:bibl/tei:title[@type='short-Checklist'])
         return
             <p id="b{$biblio}">
                 <a href="http://papyri.info/biblio/{$biblio}" target="_blank" class="id">{$biblio}</a>.
