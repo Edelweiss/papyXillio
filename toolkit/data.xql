@@ -14,38 +14,10 @@ declare variable $SEPARATOR := ',';
 declare variable $DDB_SERIES := file:list(concat($SOURCE_REPOSITORY, '/DDB_EpiDoc_XML'));
 
 (: 
- $update => biblio, ddb, hgv, dclp
- $list => separated list of items that need to be updated, preceded by a minus sign if the respective item is to be deleted
-:)
-declare function local:sync($update as xs:string?, $list as xs:string?) as node() {
-    <ul>
-    {
-        if($update = 'biblio')then(
-            <li>
-                Biblio
-                {local:processSyncList('Biblio', $list)}
-            </li>
-        )else(if($update = 'hgv')then(
-            <li>
-                HGV
-                {local:processSyncList('HGV_meta_EpiDoc', $list)}
-            </li>
-        )else(if($update = 'ddb')then(
-            <li>
-                DDB
-                {local:processSyncList('DDB_EpiDoc_XML', $list)}
-            </li>
-        )else(if($update = 'dclp')then(
-            <li>
-                DCLP
-                {local:processSyncList('DCLP', $list)}
-            </li>
-        )else())))
-    }
-    </ul>
-};
+   $folder => Biblio, DCLP, DDB_EpiDoc_XML, HGV_meta_EpiDoc, APIS, HGV_trans_EpiDoc
+   $list => separated list of items that need to be updated, preceded by a minus sign if the respective item is to be deleted
 
-(: Test Cases for DDB
+   Test Cases for DDB
    c.ep.lat.2, chr.wilck.11, c.pap.gr.2.1.25, c.pap.gr.2.1.5brpdupl, cpr.17A.AnhangA, sosol.2013.0133
 
    Test Cases for DCLP
@@ -56,8 +28,15 @@ declare function local:sync($update as xs:string?, $list as xs:string?) as node(
 
    Test Cases for HGV
    993a
+
+   Test Cases for APIS
+   yale.apis.0000010000
+
+   Test Cases for Translations
+   p.batav;;34
+   9363a
 :)
-declare function local:processSyncList($folder, $list as xs:string?) as node(){
+declare function local:processSync($folder, $list as xs:string?) as node(){
     <ul>
     {
         for $item in tokenize($list, $SEPARATOR)
@@ -79,9 +58,12 @@ declare function local:getFilepath($folder as xs:string, $id as xs:string) as xs
         let $series := local:getlongestPath($DDB_SERIES, $id)
         let $volume := local:getlongestPath(file:list(concat($SOURCE_REPOSITORY, '/', $folder, '/', $series)), $id)
         return concat($folder, '/', $series, if(string($volume))then(concat('/', $volume))else(''))
-    ) else (
-        concat($folder, '/', if($folder = 'HGV_meta_EpiDoc')then('HGV')else(''), papy:getFolder1000(number(replace($id, '[^\d]', ''))))
-    )
+    )else(if($folder = 'APIS')then(
+        concat($folder, '/', substring-before($id, '.'), '/xml')
+    )else(if($folder = 'HGV_trans_EpiDoc')then(
+        $folder
+    )else(
+        concat($folder, '/', if($folder = 'HGV_meta_EpiDoc')then('HGV')else(''), papy:getFolder1000(number(replace($id, '[^\d]', '')))))))
 };
 
 declare function local:getlongestPath($fileList, $id as xs:string?) as xs:string?{
@@ -115,18 +97,23 @@ declare function local:delete($folder as xs:string, $file as xs:string) as xs:st
         <script type="text/javascript" src="../resources/js/jquery/jquery-ui-1.8.17.custom.min.js"></script>
     </head>
     <body>
-        <h3>idp.data sync</h3>
-        <form method="get">
-            <input type="text" name="list" value="{request:get-parameter('list', '1,2,3')}"/>
-            <button type="submit" name="update" value="biblio">Biblio</button>
-            <button type="submit" name="update" value="dclp">DCLP</button>
-            <button type="submit" name="update" value="ddb">DDB</button>
-            <button type="submit" name="update" value="hgv">HGV</button>
-            <button type="submit" name="update" value="apis" onclick="alert('Sorry, not implemented yet…'); return false;">APIS</button>
-            <button type="submit" name="update" value="translations" onclick="alert('Sorry, not implemented yet…'); return false;">Translations</button>
+        <h3><a href="data.xql">idp.data sync</a></h3>
+        <form method="get" onkeypress="return event.keyCode != 13;">
+            <input type="text" name="list" value="{request:get-parameter('list', '')}"/>
+            <button type="submit" name="folder" value="Biblio">Biblio</button>
+            <button type="submit" name="folder" value="DCLP">DCLP</button>
+            <button type="submit" name="folder" value="DDB_EpiDoc_XML">DDB</button>
+            <button type="submit" name="folder" value="HGV_meta_EpiDoc">HGV</button>
+            <button type="submit" name="folder" value="APIS">APIS</button>
+            <button type="submit" name="folder" value="HGV_trans_EpiDoc">Translations</button>
         </form>
-        { if(request:get-parameter('update', ()))then(
-            local:sync(request:get-parameter('update', ()), request:get-parameter('list', ())))
-          else() }
+        {
+            if(request:get-parameter('folder', ()))then(
+                <div>
+                    <h3>{request:get-parameter('folder', ())}</h3>
+                    {local:processSync(request:get-parameter('folder', ()), request:get-parameter('list', ()))}
+                </div>
+            )else()
+        }
     </body>
 </html>
