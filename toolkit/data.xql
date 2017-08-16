@@ -89,6 +89,27 @@ declare function local:delete($folder as xs:string, $file as xs:string) as xs:st
     if(xmldb:collection-available($folder) and fn:doc-available(concat($folder, '/', $file)))then(xmldb:remove($folder, $file), 'file deleted')else(concat('could not delete file ', $file, ' in folder ', $folder))
 };
 
+declare function local:processSyncAll($folder) as node(){
+    <ul>
+        {
+            let $collection := concat($REPOSITORY, '/', $folder)
+            return
+                if(xmldb:collection-available($collection))then(
+                    xmldb:remove($collection)
+                    )else()
+            
+        }
+        {
+            if($folder = ('Biblio', 'DCLP', 'HGV_meta_EpiDoc'))then(
+                let $pathPattern :=  concat($folder, '/*/*.xml')
+                for $file in xmldb:store-files-from-pattern($REPOSITORY, $SOURCE_REPOSITORY, $pathPattern, 'text/xml', true())
+                    return <li>{$file}</li>
+                )else()
+            
+        }
+    </ul>
+};
+
 <html>
     <head>
         <title>IDP.DATA</title>
@@ -107,13 +128,28 @@ declare function local:delete($folder as xs:string, $file as xs:string) as xs:st
             <button type="submit" name="folder" value="APIS">APIS</button>
             <button type="submit" name="folder" value="HGV_trans_EpiDoc">Translations</button>
         </form>
+
+        <p>Sync all files: (use with caution, can take some time)</p>
+        <ul>
+            <li><a href="?all=Biblio">Biblio</a></li>
+            <li><a href="?all=DCLP">DCLP</a></li>
+            <li><a href="?Xall=DDB_EpiDoc_XML">DDB (not implemented yet)</a></li>
+            <li><a href="?all=HGV_meta_EpiDoc">HGV</a></li>
+            <li><a href="?Xall=APIS">APIS (not implemented yet)</a></li>
+            <li><a href="?Xall=HGV_trans_EpiDoc">Translations (not implemented yet)</a></li>
+        </ul>
         {
             if(request:get-parameter('folder', ()))then(
                 <div>
                     <h3>{request:get-parameter('folder', ())}</h3>
                     {local:processSync(request:get-parameter('folder', ()), request:get-parameter('list', ()))}
                 </div>
-            )else()
+            )else(if(request:get-parameter('all', ()))then(
+                <div>
+                    <h3>{request:get-parameter('all', ())}</h3>
+                    {local:processSyncAll(request:get-parameter('all', ()))}
+                </div>
+                )else())
         }
     </body>
 </html>
