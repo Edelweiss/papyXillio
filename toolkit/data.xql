@@ -8,7 +8,7 @@ declare namespace tei = "http://www.tei-c.org/ns/1.0";
 declare option output:method "html5";
 declare option output:media-type "text/html";
 
-declare variable $SOURCE_REPOSITORY := '/Users/elemmire/data/idp.data/dclp/development';
+declare variable $SOURCE_REPOSITORY := '/srv/data/papyri.info/idp.data';
 declare variable $REPOSITORY := '/db/data/idp.data/dclp';
 declare variable $SEPARATOR := ',';
 declare variable $DDB_SERIES := file:list(concat($SOURCE_REPOSITORY, '/DDB_EpiDoc_XML'));
@@ -97,7 +97,6 @@ declare function local:processSyncAll($folder) as node(){
                 if(xmldb:collection-available($collection))then(
                     xmldb:remove($collection)
                     )else()
-            
         }
         {
             if($folder = ('Biblio', 'DCLP', 'HGV_meta_EpiDoc'))then(
@@ -105,7 +104,6 @@ declare function local:processSyncAll($folder) as node(){
                 for $file in xmldb:store-files-from-pattern($REPOSITORY, $SOURCE_REPOSITORY, $pathPattern, 'text/xml', true())
                     return <li>{$file}</li>
                 )else()
-            
         }
     </ul>
 };
