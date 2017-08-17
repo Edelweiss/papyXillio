@@ -73,6 +73,13 @@ declare function app:autocompleteAncientAuthorsAndWorks($node as node(), $model 
       return ($author, $title, $date)
 };
 
+declare function app:autocompleteAncientAuthors($node as node(), $model as map(*), $term as xs:string) {
+    let $biblioList := collection('/db/data/idp.data/dclp/DCLP/?select=*.xml;recurse=yes')//tei:bibl[@type='publication'][@subtype='ancient'][contains(tei:author, $term)]
+    for $biblio in $biblioList
+      group by $author := $biblio/tei:author
+      return <author><label>{string($author)}</label><ref>{data($author/@ref)}</ref></author>
+};
+
 (: example for HGV id that exists in EpiDoc but not in Aquila 3720b :)
 
 declare function app:__searchEpiDocZombies($node as node(), $model as map(*)) {
